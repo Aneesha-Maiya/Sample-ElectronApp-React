@@ -84,30 +84,6 @@ const stopCodeBlock = async() => {
 //         setTimeout(start, 5000);
 //     }
 // };
-const startCodeBlock = async() => {
-  try {
-//Request structure 
-  const request = {
-    "codeBlockId": null,
-     "userId": null
-  }
-      await connection.invoke("StartCodeBlock", request);
-  } catch (err) {
-      console.error(err);
-}
-}
-const stopCodeBlock = async() => {
-  try {
-//Request structure 
-  const request = {
-    "codeBlockId": null,
-     "userId": null
-  }
-      await connection.invoke("StopCodeBlock", request);
-  } catch (err) {
-      console.error(err);
-}
-}
 let template1 = [
   {
     label: `Apps ${MenuItem1Label}`,
@@ -319,10 +295,7 @@ app.on('ready',() => {
     //     console.log("data from axios (Post): "+response.data)
     //   })
     // .catch((error) => console.log("error msg: "+error))
-<<<<<<< HEAD
     stopCodeBlock
-=======
->>>>>>> a7632e62fc795e728a43c4187dc6729b52c8e8c8
     isCodeBlockHalted = true;
     stopCodeBlock
     },30000)
@@ -336,10 +309,6 @@ app.on('ready',() => {
       //   console.log("Response from Axios when app in Idle/Locked state(Background)(Post) "+ response)
       //   console.log("data from axios (Post): "+response.data)
       // })
-<<<<<<< HEAD
-=======
-      stopCodeBlock
->>>>>>> a7632e62fc795e728a43c4187dc6729b52c8e8c8
       isCodeBlockHalted = true;
       stopCodeBlock
       }
