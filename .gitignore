@@ -1,0 +1,4 @@
+node_modules/
+PackageJsonChecker/
+build/
+.env

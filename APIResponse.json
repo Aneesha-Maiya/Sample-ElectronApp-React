@@ -1,0 +1,7 @@
+[
+    {
+        "newLogin" : true,
+        "datasRequired": ["Discord","Github"],
+        "userRole": "user"
+    }
+]
