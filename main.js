@@ -390,6 +390,13 @@ app.on('ready',() => {
   })
   ipcMain.on('createCodeBlock',(event,param)=>{
     console.log("creaCodeBlockRequest - ",param)
+    connection.on('createCodeBlock',async(data)=>{
+      try{
+        await connection.invoke("CreateAndStartCodeBlock", data);
+      } catch (err) {
+        console.error(err);
+    }
+    })
   })
   ipcMain.on('startCodeBlock',(event,param)=>{
     console.log("startCodeBlockRequest - ",param)
@@ -426,11 +433,6 @@ app.on('ready',() => {
       console.log("Menu item 1 label ",MenuItem1Label)
     }
   })
-  try{
-    await connection.invoke("CreateAndStartCodeBlock", data);
-  } catch (err) {
-    console.error(err);
-}
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
