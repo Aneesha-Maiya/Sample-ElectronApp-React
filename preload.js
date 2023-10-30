@@ -6,5 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     sendWebURL: (res) => ipcRenderer.send('sendWebURL',res),
     createCodeBlock:(res) => ipcRenderer.send('createCodeBlock',res),
     startCodeBlock: (res) => ipcRenderer.send('startCodeBlock',res),
-    stopCodeBlock: (res) => ipcRenderer.send('stopCodeBlock',res)
+    stopCodeBlock: (res) => ipcRenderer.send('stopCodeBlock',res),
+    processUserLogin: (res) => ipcRenderer.send('processUserLogin',res),
+    sendKeyCloakToken: (res) => ipcRenderer.send('sendKeyCloakToken',res)
 })

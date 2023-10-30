@@ -2,12 +2,13 @@ const { app, BrowserWindow, Menu, ipcMain, dialog, BrowserView
 ,powerMonitor,screen} = require('electron')
 const path = require('path');
 const isDev = require('electron-is-dev');
-const API_Response = require('./APIResponse.json');
+let API_Response = require('./APIResponse.json');
 const axios = require('axios');
 const { clearTimeout, clearInterval } = require('timers');
 const { electron } = require('process');
 require("dotenv").config();
-const signalR = require('@microsoft/signalr')
+// const signalr = require('./wwwroot/lib/signalr/signalr')
+const signalr = require('@microsoft/signalr')
 //  function handleMessage(msg) {
 //   console.log(msg)
 //   return msg
@@ -23,44 +24,57 @@ let mousePos1,mousePos2;
 let x,y,z,w,interval,timeElapsed = 0
 let isCodeBlockHalted = false
 const baseURL = process.env.BASE_URL
-const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/codehub")
-    .configureLogging(signalR.LogLevel.Information)
+let keycloakToken = null
+// const connection = new signalR.HubConnectionBuilder()
+//     .withUrl("/codehub")
+//     .configureLogging(signalR.LogLevel.Information)
+//     .build();
+let connection = new signalr.HubConnectionBuilder()
+    .withUrl(`${baseURL}codehub`)
     .build();
-
-async function start(){
-    try {
-        await connection.start();
-        console.log("SignalR Connected.");
-    } catch (err) {
-        console.log(err);
-        setTimeout(start, 5000);
-    }
-}
-const startCodeBlock = async() => {
+// async function start(){
+//     try {
+//         await connection.start();
+//         console.log("SignalR Connected.");
+//     } catch (err) {
+//         console.log(err);
+//         setTimeout(start, 5000);
+//     }
+// }
+async function start() {
   try {
-//Request structure 
-  const request = {
-    "codeBlockId": null,
-     "userId": null
-  }
-      await connection.invoke("StartCodeBlock", request);
+      await connection.start();
+      console.log("SignalR Connected.");
   } catch (err) {
-      console.error(err);
-}
-}
-const stopCodeBlock = async() => {
-  try {
-//Request structure 
-  const request = {
-    "codeBlockId": null,
-     "userId": null
+      console.log(err);
+      setTimeout(start, 5000);
   }
-      await connection.invoke("StopCodeBlock", request);
-  } catch (err) {
-      console.error(err);
-}
-}
+};
+start()
+// const //startCodeBlock = async() => {
+//   try {
+// //Request structure 
+//   const request = {
+//     "codeBlockId": null,
+//      "userId": null
+//   }
+//       await connection.invoke("//StartCodeBlock", request);
+//   } catch (err) {
+//       console.error(err);
+// }
+// }
+// const //stopCodeBlock = async() => {
+//   try {
+// //Request structure 
+//   const request = {
+//     "codeBlockId": null,
+//      "userId": null
+//   }
+//       await connection.invoke("//StopCodeBlock", request);
+//   } catch (err) {
+//       console.error(err);
+// }
+// }
 // function resetTimer(){
 //   clearInterval(timer)
 //   currSec = 0
@@ -102,7 +116,7 @@ let template1 = [
         }
       }},
       { label: 'Code' },
-      (API_Response[0].userRole == "Admin" || API_Response[0].userRole == "admin") ? { label: 'Users'} 
+      (API_Response.userRole == "Admin" || API_Response.userRole == "admin") ? { label: 'Users'} 
       : {label: null}
     ]
   },
@@ -192,10 +206,10 @@ app.on('ready',() => {
         if (mainWindow.isFocused()) {
           if (input.type === 'keyDown' && input.key != "Unidentified") {
             console.log('Keypress detected:', input.key);
-            startCodeBlock
+            //startCodeBlock
             clearTimeout(y)
             isCodeBlockHalted = false
-            startCodeBlock
+            //startCodeBlock
             console.log("Clear previous timeout and set new timeout codeblock status: ",isCodeBlockHalted)
             y = setTimeout(()=>{
               console.log("app in foreground(Idle) for 30 seconds codeblock status: ",isCodeBlockHalted)
@@ -205,7 +219,7 @@ app.on('ready',() => {
               //   console.log("data from axios (Post): "+response.data)
               // })
               isCodeBlockHalted = true
-              stopCodeBlock
+              //stopCodeBlock
             },30000)
           }
         }
@@ -220,7 +234,7 @@ app.on('ready',() => {
       //   console.log("data from axios (Post): "+response.data)
       // })
       isCodeBlockHalted = true
-      stopCodeBlock
+      //stopCodeBlock
     },30000)
     z = setInterval(()=>{
       const idleState = powerMonitor.getSystemIdleState(idleThreshold)
@@ -232,7 +246,7 @@ app.on('ready',() => {
         //   console.log("data from axios (Post): "+response.data)
         // })
         isCodeBlockHalted = true
-        stopCodeBlock
+        //stopCodeBlock
       }
       else{
         console.log("System state(Foreground): "+idleState+" codeblock status: ",isCodeBlockHalted)
@@ -244,7 +258,7 @@ app.on('ready',() => {
             interval = 0
             clearTimeout(y)
             isCodeBlockHalted = false
-            startCodeBlock
+            //startCodeBlock
             console.log("Clear previous timeout and set new timeout. codeblock status: ",isCodeBlockHalted)
             y = setTimeout(()=>{
               console.log("app in foreground(Idle) for 30 seconds. codeblock status: ",isCodeBlockHalted)
@@ -254,7 +268,7 @@ app.on('ready',() => {
               // console.log("data from axios (Post): "+response.data)
               //  })
                isCodeBlockHalted = true
-               stopCodeBlock
+               //stopCodeBlock
           },30000)
         }
         else{
@@ -267,7 +281,7 @@ app.on('ready',() => {
           // console.log("data from axios (Post): "+response.data)
           // })
           isCodeBlockHalted = true
-          stopCodeBlock
+          //stopCodeBlock
         }
       }
     },15000)
@@ -295,9 +309,9 @@ app.on('ready',() => {
     //     console.log("data from axios (Post): "+response.data)
     //   })
     // .catch((error) => console.log("error msg: "+error))
-    stopCodeBlock
+    //stopCodeBlock
     isCodeBlockHalted = true;
-    stopCodeBlock
+    //stopCodeBlock
     },30000)
     w = setInterval(()=>{
       timeElapsed++
@@ -310,7 +324,7 @@ app.on('ready',() => {
       //   console.log("data from axios (Post): "+response.data)
       // })
       isCodeBlockHalted = true;
-      stopCodeBlock
+      //stopCodeBlock
       }
       else{
         console.log("System state(Background): "+idleState+" for( "+timeElapsed*15+" secs) codeblock status: ",isCodeBlockHalted)
@@ -377,11 +391,20 @@ app.on('ready',() => {
   ipcMain.on('createCodeBlock',(event,param)=>{
     console.log("creaCodeBlockRequest - ",param)
   })
-  ipcMain.on('startCodeBlock',(event,param)=>{
-    console.log("startCodeBlockRequest - ",param)
+  ipcMain.on('//startCodeBlock',(event,param)=>{
+    console.log("//startCodeBlockRequest - ",param)
   })
-  ipcMain.on('stopCodeBlock',(event,param)=>{
-    console.log("stopCodeBlockRequest - ",param)
+  ipcMain.on('//stopCodeBlock',(event,param)=>{
+    console.log("//stopCodeBlockRequest - ",param)
+  })
+  ipcMain.on('processUserLogin',(event,param)=>{
+    API_Response = param
+    console.log("processUserLogin - ",param)
+  })
+  ipcMain.on('sendKeyCloakToken',(event,param)=>{
+    keycloakToken = param
+    console.log("keycloak token value - ",param)
+    console.log("Keycloak token as variable",keycloakToken)
   })
   ipcMain.on('sendWebURL',(event,param)=>{
     mainWindow.loadURL(isDev
@@ -428,7 +451,7 @@ app.on('window-all-closed', (event) => {
   //       console.log("data from axios (Post): "+response.data)
   //     })
   //   .catch((error) => console.log("error msg: "+error))
-  stopCodeBlock
+  //stopCodeBlock
   const choice = dialog.showMessageBoxSync(mainWindow,{
         type: 'question',
         buttons: ['Quit','Cancel','Item1','Item2'],
