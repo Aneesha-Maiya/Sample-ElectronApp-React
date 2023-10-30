@@ -391,11 +391,11 @@ app.on('ready',() => {
   ipcMain.on('createCodeBlock',(event,param)=>{
     console.log("creaCodeBlockRequest - ",param)
   })
-  ipcMain.on('//startCodeBlock',(event,param)=>{
-    console.log("//startCodeBlockRequest - ",param)
+  ipcMain.on('startCodeBlock',(event,param)=>{
+    console.log("startCodeBlockRequest - ",param)
   })
-  ipcMain.on('//stopCodeBlock',(event,param)=>{
-    console.log("//stopCodeBlockRequest - ",param)
+  ipcMain.on('stopCodeBlock',(event,param)=>{
+    console.log("stopCodeBlockRequest - ",param)
   })
   ipcMain.on('processUserLogin',(event,param)=>{
     API_Response = param
@@ -406,10 +406,8 @@ app.on('ready',() => {
     console.log("keycloak token value - ",param)
     console.log("Keycloak token as variable",keycloakToken)
   })
-  ipcMain.on('sendWebURL',(event,param)=>{
-    mainWindow.loadURL(isDev
-      ? `${param.url}`
-      : `file://${path.join(__dirname, '../build/index.html')}`);
+  connection.on("LaunchedCodeBlock",(data)=>{
+    mainWindow.loadURL(`${data.url}:${data.port}`);
       secondaryWindow = new BrowserWindow({
         width: 800,
         height: 600,
@@ -419,10 +417,8 @@ app.on('ready',() => {
           webviewTag: true,
         }
       })
-    secondaryWindow.loadURL(isDev
-      ? `${param.webAppUrl}`
-      : `file://${path.join(__dirname, '../build/index.html')}`)
-    if(param.action == "openedCodeBlock"){
+    secondaryWindow.loadURL(`${data.url}:${data.appPortNumber}`)
+    if(data.action == "openedCodeBlock"){
       MenuItem1Label = "CodeBlock"
       template1[0].label = template1[0].label + " - " + 'CodeBlock'
       menu = Menu.buildFromTemplate(template1)
@@ -430,6 +426,11 @@ app.on('ready',() => {
       console.log("Menu item 1 label ",MenuItem1Label)
     }
   })
+  try{
+    await connection.invoke("CreateAndStartCodeBlock", data);
+  } catch (err) {
+    console.error(err);
+}
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
