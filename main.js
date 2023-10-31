@@ -25,6 +25,14 @@ let x,y,z,w,interval,timeElapsed = 0
 let isCodeBlockHalted = false
 const baseURL = process.env.BASE_URL
 let keycloakToken = null
+let startCodeBlockRequest = {
+  "codeBlockId":"123",
+  "userId": "ABC123"
+}
+let stopCodeBlockRequest = {
+  "codeBlockId":"123",
+  "userId": "ABC123"
+}
 // const connection = new signalR.HubConnectionBuilder()
 //     .withUrl("/codehub")
 //     .configureLogging(signalR.LogLevel.Information)
@@ -63,6 +71,14 @@ start()
 //       console.error(err);
 // }
 // }
+const startCodeBlock = async() => {
+  try{
+    let reply = await connection.invoke("StartCodeBlock", startCodeBlockRequest);
+    console.log(reply)
+  } catch (err) {
+    console.error(err);
+  }
+}
 // const //stopCodeBlock = async() => {
 //   try {
 // //Request structure 
@@ -75,20 +91,14 @@ start()
 //       console.error(err);
 // }
 // }
-// function resetTimer(){
-//   clearInterval(timer)
-//   currSec = 0
-//   timer = setInterval(startIdleTimer,1000)
-// }
-// resetTimer()
-// function startIdleTimer(){
-//   currSec++
-// }
-// const connection = new signalR.HubConnectionBuilder()
-//     .withUrl("#")
-//     .configureLogging(signalR.LogLevel.Information)
-//     .build();
-
+const stopCodeBlock = async() => {
+  try{
+    let reply = await connection.invoke("StopCodeBlock", stopCodeBlockRequest);
+    console.log(reply)
+  } catch (err) {
+    console.error(err);
+  }
+}
 // async function start() {
 //     try {
 //         await connection.start();
@@ -206,10 +216,10 @@ app.on('ready',() => {
         if (mainWindow.isFocused()) {
           if (input.type === 'keyDown' && input.key != "Unidentified") {
             console.log('Keypress detected:', input.key);
-            //startCodeBlock
+            startCodeBlock
             clearTimeout(y)
             isCodeBlockHalted = false
-            //startCodeBlock
+            startCodeBlock
             console.log("Clear previous timeout and set new timeout codeblock status: ",isCodeBlockHalted)
             y = setTimeout(()=>{
               console.log("app in foreground(Idle) for 30 seconds codeblock status: ",isCodeBlockHalted)
@@ -219,7 +229,7 @@ app.on('ready',() => {
               //   console.log("data from axios (Post): "+response.data)
               // })
               isCodeBlockHalted = true
-              //stopCodeBlock
+              stopCodeBlock
             },30000)
           }
         }
@@ -234,7 +244,7 @@ app.on('ready',() => {
       //   console.log("data from axios (Post): "+response.data)
       // })
       isCodeBlockHalted = true
-      //stopCodeBlock
+      stopCodeBlock
     },30000)
     z = setInterval(()=>{
       const idleState = powerMonitor.getSystemIdleState(idleThreshold)
@@ -246,7 +256,7 @@ app.on('ready',() => {
         //   console.log("data from axios (Post): "+response.data)
         // })
         isCodeBlockHalted = true
-        //stopCodeBlock
+        stopCodeBlock
       }
       else{
         console.log("System state(Foreground): "+idleState+" codeblock status: ",isCodeBlockHalted)
@@ -258,7 +268,7 @@ app.on('ready',() => {
             interval = 0
             clearTimeout(y)
             isCodeBlockHalted = false
-            //startCodeBlock
+            startCodeBlock
             console.log("Clear previous timeout and set new timeout. codeblock status: ",isCodeBlockHalted)
             y = setTimeout(()=>{
               console.log("app in foreground(Idle) for 30 seconds. codeblock status: ",isCodeBlockHalted)
@@ -268,7 +278,7 @@ app.on('ready',() => {
               // console.log("data from axios (Post): "+response.data)
               //  })
                isCodeBlockHalted = true
-               //stopCodeBlock
+               stopCodeBlock
           },30000)
         }
         else{
@@ -281,7 +291,7 @@ app.on('ready',() => {
           // console.log("data from axios (Post): "+response.data)
           // })
           isCodeBlockHalted = true
-          //stopCodeBlock
+          stopCodeBlock
         }
       }
     },15000)
@@ -311,7 +321,7 @@ app.on('ready',() => {
     // .catch((error) => console.log("error msg: "+error))
     //stopCodeBlock
     isCodeBlockHalted = true;
-    //stopCodeBlock
+    stopCodeBlock
     },30000)
     w = setInterval(()=>{
       timeElapsed++
@@ -324,7 +334,7 @@ app.on('ready',() => {
       //   console.log("data from axios (Post): "+response.data)
       // })
       isCodeBlockHalted = true;
-      //stopCodeBlock
+      stopCodeBlock
       }
       else{
         console.log("System state(Background): "+idleState+" for( "+timeElapsed*15+" secs) codeblock status: ",isCodeBlockHalted)
@@ -388,21 +398,35 @@ app.on('ready',() => {
     ? `${param.url}`
     : `file://${path.join(__dirname, '../build/index.html')}`)
   })
-  ipcMain.on('createCodeBlock',(event,param)=>{
-    console.log("creaCodeBlockRequest - ",param)
-    connection.on('createCodeBlock',async(data)=>{
+  ipcMain.on('createCodeBlock',async(event,param)=>{
+    console.log("createCodeBlockRequest - ",param)
+    const createCodeBlockRequest = {
+      "projectName": param.projectName,
+      "projectDescription": param.projectDescription,
+      "userId": param.userId,
+      "tempalteId": param.tempalteId,
+      "id": param.id
+    }
+    
       try{
-        await connection.invoke("CreateAndStartCodeBlock", data);
+        let reply = await connection.invoke("CreateAndStartCodeBlock", createCodeBlockRequest);
+        console.log(reply)
       } catch (err) {
         console.error(err);
-    }
-    })
+      }
+   
   })
-  ipcMain.on('startCodeBlock',(event,param)=>{
+  ipcMain.on('startCodeBlock',async(event,param)=>{
     console.log("startCodeBlockRequest - ",param)
+      startCodeBlockRequest.codeBlockId = param.codeBlockId
+      startCodeBlockRequest.userId = param.userId
+      startCodeBlock
   })
   ipcMain.on('stopCodeBlock',(event,param)=>{
     console.log("stopCodeBlockRequest - ",param)
+      stopCodeBlockRequest.codeBlockId = param.codeBlockId
+      startCodeBlockRequest.userId = param.userId
+      stopCodeBlock
   })
   ipcMain.on('processUserLogin',(event,param)=>{
     API_Response = param
@@ -465,6 +489,7 @@ app.on('window-all-closed', (event) => {
       })
       if(choice === 1){
         console.log("The event won't happen")
+        stopCodeBlock
         event.preventDefault();
         app.relaunch()
       }
